@@ -150,8 +150,9 @@ static int rpp_getcontroller(char *result, int maxres, char *revname) {
 }
 
 
-/** @brief advertises our inbound preferences to a remote prefix */
-static void advertise_inpref_to_remote_dst(char *locpreflist, int ttl, char *servstringaddr, char *preflist) {
+/** @brief advertises our inbound preferences to a remote prefix
+  * @return returns 0 on success, non-zero otherwise */
+static int advertise_inpref_to_remote_dst(char *locpreflist, int ttl, char *servstringaddr, char *preflist) {
   char buff[64];
   int bufflen;
   int sock;
@@ -166,13 +167,13 @@ static void advertise_inpref_to_remote_dst(char *locpreflist, int ttl, char *ser
   sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sock < 0) {
     printf("ERROR: socket() call failed (%s)\n", strerror(errno));
-    return;
+    return(-1);
   }
 
   /* establish the connection to the server */
   if (connect(sock, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
     printf("ERROR: connection to the remote controller failed (%s)\n", strerror(errno));
-    return;
+    return(-2);
   }
 
   /* send our inbound routing preferences to the remote controller */
@@ -180,34 +181,36 @@ static void advertise_inpref_to_remote_dst(char *locpreflist, int ttl, char *ser
   if (send(sock, buff, bufflen, 0) != bufflen) {
     printf("ERROR: failed to send routing prefs to %s (%s)\n", servstringaddr, strerror(errno));
     close(sock);
-    return;
+    return(-3);
   }
 
   /* send the list of our local prefixes */
   if (send(sock, locpreflist, strlen(locpreflist), 0) != (unsigned)strlen(locpreflist)) {
     printf("ERROR: failed to send routing prefs to %s (%s)\n", servstringaddr, strerror(errno));
     close(sock);
-    return;
+    return(-4);
   }
   if (send(sock, "\t", 1, 0) != 1) {
     printf("ERROR: failed to send routing prefs to %s (%s)\n", servstringaddr, strerror(errno));
     close(sock);
-    return;
+    return(-5);
   }
 
   if (send(sock, preflist, strlen(preflist), 0) != (unsigned)strlen(preflist)) {
     printf("ERROR: failed to send routing prefs to %s (%s)\n", servstringaddr, strerror(errno));
     close(sock);
-    return;
+    return(-6);
   }
 
   /* terminate with a \r\n and close the connection */
   if (send(sock, "\r\n", 2, 0) != 2) {
     printf("ERROR: failed to send routing prefs to %s (%s)\n", servstringaddr, strerror(errno));
+    close(sock);
+    return(-7);
   }
 
   close(sock);
-  return;
+  return(0);
 }
 
 
@@ -259,8 +262,12 @@ int main(int argc, char **argv) {
   /* if action is 'resolve', then stop here */
   if (action == RESOLVE) return(0);
 
+  puts("Sending preferences...");
+
   /* send a SETINPREF query to the remote controller */
-  advertise_inpref_to_remote_dst(locpreflist, 3600, rdeaddr, preflist);
+  if (advertise_inpref_to_remote_dst(locpreflist, 3600, rdeaddr, preflist) == 0) {
+    puts("Done.");
+  }
 
   return(0);
 }
