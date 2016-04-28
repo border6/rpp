@@ -177,26 +177,26 @@ static int advertise_inpref_to_remote_dst(char *locpreflist, int ttl, char *serv
   }
 
   /* send our inbound routing preferences to the remote controller */
-  bufflen = sprintf(buff, "SETINPREF\t%d\t", ttl);
-  if (send(sock, buff, bufflen, 0) != bufflen) {
+  bufflen = sprintf(buff, "SETINPREF %d\t", ttl);
+  if (send(sock, buff, bufflen, MSG_MORE) != bufflen) {
     printf("ERROR: failed to send routing prefs to %s (%s)\n", servstringaddr, strerror(errno));
     close(sock);
     return(-3);
   }
 
   /* send the list of our local prefixes */
-  if (send(sock, locpreflist, strlen(locpreflist), 0) != (unsigned)strlen(locpreflist)) {
+  if (send(sock, locpreflist, strlen(locpreflist), MSG_MORE) != (unsigned)strlen(locpreflist)) {
     printf("ERROR: failed to send routing prefs to %s (%s)\n", servstringaddr, strerror(errno));
     close(sock);
     return(-4);
   }
-  if (send(sock, "\t", 1, 0) != 1) {
+  if (send(sock, "\t", 1, MSG_MORE) != 1) {
     printf("ERROR: failed to send routing prefs to %s (%s)\n", servstringaddr, strerror(errno));
     close(sock);
     return(-5);
   }
 
-  if (send(sock, preflist, strlen(preflist), 0) != (unsigned)strlen(preflist)) {
+  if (send(sock, preflist, strlen(preflist), MSG_MORE) != (unsigned)strlen(preflist)) {
     printf("ERROR: failed to send routing prefs to %s (%s)\n", servstringaddr, strerror(errno));
     close(sock);
     return(-6);
@@ -230,9 +230,10 @@ int main(int argc, char **argv) {
   /* validate command and number of CLI arguments */
   if ((argc == 3) && (strcmp(argv[1], "resolve") == 0)) {
     action = RESOLVE;
-  } else if ((argc == 4) && (strcmp(argv[1], "advertise") == 0)) {
+  } else if ((argc == 5) && (strcmp(argv[1], "advertise") == 0)) {
     action = ADVERTISE;
-    locpreflist = argv[4];
+    locpreflist = argv[3];
+    preflist = argv[4];
   } else {
     printhelp();
     return(1);
