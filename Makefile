@@ -6,10 +6,13 @@ CFLAGS = -O3 -s -std=gnu89 -Wall -Wextra -pedantic -Wformat-security -Werror -Ws
 CLIBS = -lresolv
 CC = gcc
 
-all: rpp
+all: rpp README
 
 rpp: rpp.c
 	$(CC) rpp.c $(CLIBS) -o rpp $(CFLAGS)
+
+README: rpp
+	./rpp --help > README
 
 clean:
 	rm -f *.o rpp

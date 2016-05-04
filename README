@@ -1,0 +1,18 @@
+rpp version 20160504 Copyright (C) 2016 Border 6 S.A.S
+
+rpp is a simple tool that allows to resolve and interact with remote RDE
+controllers.
+
+usage: rpp resolve|advertise remoteprefix [localprefixes preflist]
+
+where:
+'localprefixes' is the list of the prefixes advertised by the local AS.
+
+'preflist' is to be provided only for the 'advertise' action. it should
+be a single argument that contains the list of preffered ASes with weights to
+be advertised to the remote controller.
+
+examples:
+  rpp resolve 203.0.113.0/24
+  rpp advertise 203.0.113.0/24 '192.0.2.0/24 198.51.100.0/24' '64552:0 64900:255 65001:127'
+
