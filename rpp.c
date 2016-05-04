@@ -35,7 +35,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define PVER "20160429"
+#define PVER "20160504"
 #define PDATE "2016"
 
 
@@ -234,6 +234,9 @@ int main(int argc, char **argv) {
     action = ADVERTISE;
     locpreflist = argv[3];
     preflist = argv[4];
+  } else if ((argc == 2) && (strcmp(argv[1], "--help") == 0)) {
+    printhelp();
+    return(0);
   } else {
     printhelp();
     return(1);
